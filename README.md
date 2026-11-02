@@ -12,7 +12,7 @@ I enjoy playing Minesweeper, but I want to play offline and understand the math 
 Version 1.0 (MVP) will:
 
  - Hide 10 mines on a 9x9 board in plain text within the terminal
- - Takes a "mode col row" input; Invalid inputs are rejected with error msg
+ - Takes a "mode row col" input; Invalid inputs are rejected with error msg
    - "mode" is either flag or reveal
      - "flag" allows user to mark potential mine locations; "reveal" is user's choice for a safe tile
  - Show how many of the 8 surrounding cells are mines for every revealed cell
