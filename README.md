@@ -12,7 +12,7 @@ I enjoy playing Minesweeper, but I want to play offline and understand the math 
 Version 1.0 (MVP) will:
 
  - Hide 10 mines on a 9x9 board in plain text within the terminal
- - Takes a "col row mode" input; Invalid inputs are rejected with error msg
+ - Takes a "mode col row" input; Invalid inputs are rejected with error msg
    - "mode" is either flag or reveal
      - "flag" allows user to mark potential mine locations; "reveal" is user's choice for a safe tile
  - Show how many of the 8 surrounding cells are mines for every revealed cell
@@ -27,7 +27,7 @@ Version 1.0 (MVP) will:
 ## Tech Stack
 
 - **Language:** Python 3
-- **Libraries:** none to install; only (`random` for mine placement)
+- **Libraries:** only `random` for mine placement
 - **Data storage:** none; the game state lives in memory as two 2D lists
   (the real board and what the player can see)
 - **External tools:** Lucidchart (system diagram)
@@ -57,7 +57,7 @@ python3 minesweeper.py
 
 On each turn, type a move:
 
-- `3 4` reveals the cell at row 3, column 4
+- `r 3 4` reveals the cell at row 3, column 4
 - `f 3 4` flags or unflags the cell at row 3, column 4
 
 ## Roadmap
