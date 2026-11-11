@@ -1,13 +1,13 @@
 """
 Chunked List of Milestones to do
-1. Create build plan
-2. Create the board and print it with mines showing
-3. Compute the cells neighbors that are mines
-4. Create the player's board view that only shows revealed tiles
-5. Read a move and check if the tile is mine or not
-6. Win and loss detection
-7. Flood fill creation
-8. Create flag-mode
+1. Create build plan and function stubs ✅
+2. Define cells, the game environment, and a move ✅
+3. Compute the cells neighbors that are mines ✅
+4. Create the screen with mine count, flags, and colors ✅
+5. Randomize minds and create tests
+6. Read a move and reveal a cell
+7. Win and Loss
+8. Flood Fill
 END OF MVP
 """
 
@@ -190,12 +190,7 @@ def play() -> None:
 
 
 def main() -> None:
-    game = Game(
-        mines=frozenset({(0, 0), (2, 2)}),
-        revealed=frozenset({(0, 1), (1, 1), (2, 3)}),
-        flagged=frozenset({(2, 2)}),
-    )
-    print(render_screen(game, "TESTING", True))
+    pass
 
 
 
