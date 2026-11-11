@@ -33,19 +33,28 @@ class Move():
 # 2. Game Logic
 
 def all_cells() -> list[Cell]:
-    pass
+    return [(row, col) for row in range(ROWS) for col in range(COLUMNS)]
 
 
-def is_on_board() -> bool:
-    pass
+def is_on_board(cell: Cell) -> bool:
+    row, col = cell
+    return 0 <= row < ROWS and 0 <= col < COLUMNS
 
 
-def neighbors() -> list[Cell]:
-    pass
+def neighbors(cell: Cell) -> list[Cell]:
+    row, col = cell
+    results = []
+    for dr in (-1, 0 , 1):
+        for dc in (-1, 0, 1):
+            if (dr, dc) != (0, 0):
+                n = (row + dr, col + dc)
+                if is_on_board(n):
+                    results.append(n)
+    return results
 
 
-def count_adjacent_mines() -> int:
-    pass
+def count_adjacent_mines(cell: Cell) -> int:
+    return sum(1 for n in neighbors(cell) if n in mines)
 
 
 def new_game() -> Game:
