@@ -4,7 +4,7 @@ Chunked List of Milestones to do
 2. Define cells, the game environment, and a move ✅
 3. Compute the cells neighbors that are mines ✅
 4. Create the screen with mine count, flags, and colors ✅
-5. Randomize minds and create tests
+5. Randomize mines and create tests
 6. Read a move and reveal a cell
 7. Win and Loss
 8. Flood Fill
@@ -25,16 +25,16 @@ MINE_COUNT = 10
 Cell = tuple[int, int]
 
 class Game(NamedTuple):
-    # Immutable snapshot of the game
+    """Immutable snapshot of the game."""
 
     mines: frozenset[Cell]
-    revealed:frozenset[Cell] = frozenset()
+    revealed: frozenset[Cell] = frozenset()
     flagged: frozenset[Cell] = frozenset()
     exploded: Cell | None = None
 
 
 class Move(NamedTuple):
-    # One input from the player
+    """One input from the player."""
 
     action: str  # "flag" or "reveal"
     cell: Cell
@@ -43,52 +43,65 @@ class Move(NamedTuple):
 # 2. Game Logic
 
 def all_cells() -> list[Cell]:
-    # Returns a list of all coordinates in a ROWSxCOLS grid
+    """Returns a list of all coordinates in a ROWSxCOLS grid."""
     return [(row, col) for row in range(ROWS) for col in range(COLS)]
 
 
 def is_on_board(cell: Cell) -> bool:
+    """Returns T/F if a given cell is on the ROWxCOL board"""
     row, col = cell
     return 0 <= row < ROWS and 0 <= col < COLS
 
 
 def neighbors(cell: Cell) -> list[Cell]:
-    """ 
-        Finds all neighbors of the cell:
-     - corner = 3, side = 5, others = 8
-     - dr = move in row, dc = move in col
-     - imagines the cell at (0, 0)
-     - checks in each direction, includes diagonals, excludes itsels
-     - adds the dr/dc to the actual row/col of the cell to find the 
-       coords within the game grid
+    """Returns all cells touching this one, includes diagonals.
+
+    Only cells on board included: 
+    corner = 3, side = 5, others = 8.
     """
 
     row, col = cell
     results = []
-    
-    for dr in (-1, 0 , 1):
-        for dc in (-1, 0, 1):
-            if (dr, dc) != (0, 0):
+
+    # Try every offset (-1, 0, 1) in col/row direction
+    for dr in (-1, 0 , 1):  # dr = move in row
+        for dc in (-1, 0, 1):  # dc = move in col
+            if (dr, dc) != (0, 0):  # Skips the cell itself
+                # Adds the dr/dc to the actual row/col of the cell 
+                # to find the actual coords within the board
                 n = (row + dr, col + dc)
-                if is_on_board(n):
+                if is_on_board(n):  # Drops cells past edge of the board
                     results.append(n)
     return results
 
 
 def count_adjacent_mines(cell: Cell, mines: frozenset[Cell]) -> int:
+    """Finds the # of adj. cells that are mines."""
     return sum(1 for n in neighbors(cell) if n in mines)
 
 
 def new_game() -> Game:
+    """Creates a new game with mines randomly assigned."""
+    mines = random.sample(all_cells(), MINE_COUNT)
+    return Game(mines=frozenset(mines))
+
+
+def flood_fill() -> frozenset[Cell]:
     pass
 
 
-def reveal() -> Game:
-    pass
+def reveal(game: Game, cell: Cell) -> Game:
+    """Reveals a cell. If it is the mine, game over."""
+    if cell in game.mines:
+        return game._replace(exploded=cell)
+    
+    opened = flood_fill(cell, game.mines, blocked=game.flagged)
+    return game._replace(revealed=game.revealed | opened)
 
 
-def toggle_flag() -> Game:
-    pass
+def toggle_flag(game: Game, cell: Cell) -> Game:
+    """Toggles the flag on a cell"""
+    return game._replace(flagged=game.flagged ^ {cell})
 
 
 def apply_move() -> Game:
@@ -140,10 +153,16 @@ NUMBER_COLORS = {1: BLUE, 2: GREEN, 3: RED, 4: MAGENTA, 5: YELLOW, 6: CYAN, 7: B
 
 
 def paint(text: str, *styles: str) -> str:
+    """Wraps the text in ANSI style and resets after."""
     return "".join(styles) + text + RESET
 
 
 def cell_symbol(game: Game, cell: Cell, show_mines: bool) -> str:
+    """Returns the colored cell symbol.
+
+    Priority Order: exploded mine, mine if show_mines, flagged,
+    hidden cell, adjacent mine count for revealed cell.
+    """
     if cell == game.exploded: 
         return paint("*", BOLD, WHITE_ON_RED)
     if show_mines and cell in game.mines:
@@ -160,17 +179,25 @@ def cell_symbol(game: Game, cell: Cell, show_mines: bool) -> str:
         return paint(str(count), BOLD, NUMBER_COLORS[count])
 
 def render_row(game: Game, row: int, show_mines: bool) -> str:
+    """Returns one row of the board, starting with the row's #."""
     cells = "".join(f" {cell_symbol(game, (row, col), show_mines)} " for col in range(COLS))
     return f"{row + 1:>2} |{cells}|"
 
 def render_board(game: Game, show_mines: bool = False) -> str:
+    """Returns the full board with column #s and border.
+    
+    show_mines = True; when game is over to show all mines."""
     column_numbers = "    " + "".join(f"{col + 1:^3}" for col in range(COLS))
     top_border     = "   ┌" + "───" * COLS + "┐"
     bottom_border  = "   └" + "───" * COLS + "┘"
     rows = [render_row(game, row, show_mines) for row in range(ROWS)]
     return "\n".join([column_numbers, top_border, *rows, bottom_border])
 
-def render_screen(game:Game, message:str, show_mines: bool = False) -> str:
+def render_screen(game: Game, message:str, show_mines: bool = False) -> str:
+    """Returns the whole screen with title, board, help text, and message.
+    
+    Starts with ANSI code to clear screen and reset cursor.
+    """
     title = paint("  T E R M I N A L   M I N E S W E E P E R", BOLD)
     help_text = paint("  r row col = reveal    f row col = flag / unflag", DIM)
     return "\n".join([
@@ -190,7 +217,8 @@ def play() -> None:
 
 
 def main() -> None:
-    pass
+    game = new_game()
+    print(render_screen(game, "hello", True))
 
 
 
