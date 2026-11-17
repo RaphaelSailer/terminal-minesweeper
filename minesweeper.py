@@ -4,7 +4,7 @@ Chunked List of Milestones to do
 2. Define cells, the game environment, and a move ✅
 3. Compute the cells neighbors that are mines ✅
 4. Create the screen with mine count, flags, and colors ✅
-5. Randomize mines and create tests
+5. Randomize mines and create tests ✅
 6. Read a move and reveal a cell
 7. Win and Loss
 8. Flood Fill
@@ -86,8 +86,8 @@ def new_game() -> Game:
     return Game(mines=frozenset(mines))
 
 
-def flood_fill() -> frozenset[Cell]:
-    pass
+def flood_fill(start: Cell, mines: frozenset[Cell], blocked: frozenset[Cell]) -> frozenset[Cell]:
+    return frozenset({start}) # Todo for step 8
 
 
 def reveal(game: Game, cell: Cell) -> Game:
@@ -104,8 +104,11 @@ def toggle_flag(game: Game, cell: Cell) -> Game:
     return game._replace(flagged=game.flagged ^ {cell})
 
 
-def apply_move() -> Game:
-    pass
+def apply_move(game: Game, move: Move) -> Game:
+    """Toggles a cell's flag, or reveals that cell"""
+    if move.action == "flag":
+        return toggle_flag(game, move.cell)
+    return reveal(game, move.cell)
 
 
 def is_lost() -> bool:
@@ -122,16 +125,41 @@ def is_won() -> bool:
 ACTIONS = {"r": "reveal", "reveal": "reveal", "f": "flag", "flag": "flag"}
 
 
-def parse_move() -> Move | str:
-    pass
+def parse_move(text: str) -> Move | str:
+    """Turns the input text 'r 4 6' into a Move, or returns an error"""
+    parts = text.split()
+
+    if len(parts) != 3:
+        return "Type a mode, a row and a column, for example: r 3 4"
+
+    mode, row, col = parts
+    if mode not in ACTIONS:
+        return f"Unknown mode '{mode}'. Use 'r' to reveal or 'f' to flag."
+    if not (row.isdecimal() and col.isdecimal()):
+        return "Row and column must be whole numbers."
+
+    cell = (int(row) - 1, int(col) - 1)  # Player counts from 1
+    if not is_on_board(cell):
+        return f"Row must be 1-{ROWS} and column must be 1-{COLS}."
+
+    return Move(ACTIONS[mode], cell)
 
 
-def check_move() -> str | None:
-    pass
+def check_move(game: Game, move: Move) -> str | None:
+    """Return an error message if the move is not allowed right now."""
+    if move.cell in game.revealed:
+        return "That cell is already revealed."
+    if move.action == "reveal" and move.cell in game.flagged:
+        return "That cell is flagged. Unflag it first with: f row col"
+    return None
+    
 
-
-def read_move() -> Move | str:
-    pass
+def read_move(game: Game, text: str) -> Move | str:
+    """Parses and validates the player's move. Returns move or error."""
+    move = parse_move(text)
+    if isinstance(move, str):
+        return move
+    return check_move(game, move) or move
 
 
 # 4. Creating the board
@@ -213,12 +241,22 @@ def render_screen(game: Game, message:str, show_mines: bool = False) -> str:
 # 5. Game Loop
 
 def play() -> None:
-    pass
+    """TEMPORARY."""
+    game = new_game()
+    message = "TESTING BOARD"
+
+    while True:
+        print(render_screen(game, message, show_mines=True))
+        move = read_move(game, input("> "))
+        if isinstance(move, str):
+            message = paint(move, YELLOW)
+        else:
+            game = apply_move(game, move)
+            message = ""
 
 
 def main() -> None:
-    game = new_game()
-    print(render_screen(game, "hello", True))
+    play()
 
 
 
